@@ -1,2 +1,3 @@
-# hello-world-rabbitmq
-A repositoty to learn RabbitMQ with C#
+# Hello World RabbitMQ
+
+A repositoty to learn RabbitMQ with C# .NET 
