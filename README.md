@@ -1,6 +1,6 @@
 # Hello World RabbitMQ
 
-:books: A repository to learn RabbitMQ
+:books: A repository to learn [RabbitMQ](https://www.rabbitmq.com/)
 
 [![wakatime](https://wakatime.com/badge/github/GuilhermeStracini/hello-world-rabbitmq.svg)](https://wakatime.com/badge/github/GuilhermeStracini/hello-world-rabbitmq)
 [![Maintainability](https://api.codeclimate.com/v1/badges/87fcff4ea25008d0c3f4/maintainability)](https://codeclimate.com/github/GuilhermeStracini/hello-world-rabbitmq/maintainability)
