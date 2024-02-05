@@ -1,39 +1,45 @@
 ﻿using System;
-using RabbitMQ.Client;
 using System.Text;
+using RabbitMQ.Client;
 
+namespace NewTaskAck;
 
-namespace NewTaskAck
+class NewTaskAck
 {
-    class NewTaskAck
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
+        var factory = new ConnectionFactory() { HostName = "localhost" };
+        using (var connection = factory.CreateConnection())
+        using (var channel = connection.CreateModel())
         {
-            var factory = new ConnectionFactory() { HostName = "localhost" };
-            using(var connection = factory.CreateConnection())
-            using(var channel = connection.CreateModel())
-            {
-                channel.QueueDeclare(queue: "task_queue_ack", durable: true, exclusive: false, autoDelete: false, arguments: null);
+            channel.QueueDeclare(
+                queue: "task_queue_ack",
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null
+            );
 
-                var message = GetMessage(args);
-                var body = Encoding.UTF8.GetBytes(message);
+            var message = GetMessage(args);
+            var body = Encoding.UTF8.GetBytes(message);
 
-                var properties = channel.CreateBasicProperties();
-                properties.Persistent = true;
+            var properties = channel.CreateBasicProperties();
+            properties.Persistent = true;
 
-                channel.BasicPublish(exchange: "",
-                                    routingKey: "task_queue_ack",
-                                    basicProperties: properties,
-                                    body: body);
-            }
-
-            Console.WriteLine(" Press [enter] to exit.");
-            Console.ReadLine();
+            channel.BasicPublish(
+                exchange: "",
+                routingKey: "task_queue_ack",
+                basicProperties: properties,
+                body: body
+            );
         }
 
-        private static string GetMessage(string[] args)
-        {
-            return ((args.Length > 0) ? string.Join(" ", args) : "Hello World!");
-        }
+        Console.WriteLine(" Press [enter] to exit.");
+        Console.ReadLine();
+    }
+
+    private static string GetMessage(string[] args)
+    {
+        return ((args.Length > 0) ? string.Join(" ", args) : "Hello World!");
     }
 }
