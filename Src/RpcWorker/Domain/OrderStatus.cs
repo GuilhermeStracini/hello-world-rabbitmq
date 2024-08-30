@@ -18,5 +18,5 @@ public enum OrderStatus
     /// <summary>
     /// The declined
     /// </summary>
-    Declined
+    Declined,
 }
