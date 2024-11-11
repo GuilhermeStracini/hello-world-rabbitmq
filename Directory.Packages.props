@@ -4,6 +4,6 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="RabbitMQ.Client" Version="6.8.1" />
+    <PackageVersion Include="RabbitMQ.Client" Version="7.0.0" />
   </ItemGroup>
 </Project>
