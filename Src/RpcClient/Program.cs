@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RpcClient.Domain;
@@ -15,24 +16,22 @@ static class Program
     /// <summary>
     /// Defines the entry point of the application.
     /// </summary>
-    private static void Main()
+    public static async Task Main(string[] args)
     {
-        var factory = new ConnectionFactory { HostName = "localhost" };
-
-        using var connection = factory.CreateConnection();
-        using var channel = connection.CreateModel();
-
+        var factory = new ConnectionFactory() { HostName = "localhost" };
+        await using var connection = await factory.CreateConnectionAsync();
+        await using var channel = await connection.CreateChannelAsync();
         var replyQueue = $"{nameof(Order)}_return";
         var correlationId = Guid.NewGuid().ToString();
 
-        channel.QueueDeclare(
+        await channel.QueueDeclareAsync(
             queue: replyQueue,
             durable: false,
             exclusive: false,
             autoDelete: false,
             arguments: null
         );
-        channel.QueueDeclare(
+        await channel.QueueDeclareAsync(
             queue: nameof(Order),
             durable: false,
             exclusive: false,
@@ -40,9 +39,9 @@ static class Program
             arguments: null
         );
 
-        Consumer(channel, correlationId, replyQueue);
+        await Consumer(channel, correlationId, replyQueue);
 
-        Publisher(channel, correlationId, replyQueue);
+        await Publisher(channel, correlationId, replyQueue);
     }
 
     /// <summary>
@@ -51,10 +50,10 @@ static class Program
     /// <param name="channel">The channel.</param>
     /// <param name="correlationId">The correlation identifier.</param>
     /// <param name="replyQueue">The reply queue.</param>
-    private static void Consumer(IModel channel, string correlationId, string replyQueue)
+    private static async Task Consumer(IChannel channel, string correlationId, string replyQueue)
     {
-        var consumer = new EventingBasicConsumer(channel);
-        consumer.Received += (_, ea) =>
+        var consumer = new AsyncEventingBasicConsumer(channel);
+        consumer.ReceivedAsync += (_, ea) =>
         {
             if (correlationId == ea.BasicProperties.CorrelationId)
             {
@@ -62,15 +61,17 @@ static class Program
                 var message = Encoding.UTF8.GetString(body);
                 Console.WriteLine($"Received: {message}");
 
-                return;
+                return Task.CompletedTask;
             }
 
             Console.WriteLine(
                 $"Discarded message, invalid correlation identifiers. Original: {correlationId} | Received: {ea.BasicProperties.CorrelationId}"
             );
+
+            return Task.CompletedTask;
         };
 
-        channel.BasicConsume(queue: replyQueue, autoAck: true, consumer: consumer);
+        await channel.BasicConsumeAsync(queue: replyQueue, autoAck: true, consumer: consumer);
     }
 
     /// <summary>
@@ -79,12 +80,9 @@ static class Program
     /// <param name="channel">The channel.</param>
     /// <param name="correlationId">The correlation identifier.</param>
     /// <param name="replyQueue">The reply queue.</param>
-    private static void Publisher(IModel channel, string correlationId, string replyQueue)
+    private static async Task Publisher(IChannel channel, string correlationId, string replyQueue)
     {
-        var props = channel.CreateBasicProperties();
-
-        props.CorrelationId = correlationId;
-        props.ReplyTo = replyQueue;
+        var props = new BasicProperties { CorrelationId = correlationId, ReplyTo = replyQueue };
 
         while (true)
         {
@@ -93,14 +91,15 @@ static class Program
             if (body == null)
                 continue;
 
-            channel.BasicPublish(
+            await channel.BasicPublishAsync(
                 exchange: "",
                 routingKey: nameof(Order),
                 basicProperties: props,
+                mandatory: true,
                 body: body
             );
 
-            Console.WriteLine($"Published\r\n");
+            Console.WriteLine("Published\r\n");
 
             var key = Console.ReadKey();
 
@@ -122,7 +121,9 @@ static class Program
         var line = Console.ReadLine();
 
         if (string.IsNullOrWhiteSpace(line))
-            return null;
+        {
+            return [];
+        }
 
         var amount = decimal.Parse(line);
 

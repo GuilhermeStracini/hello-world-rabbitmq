@@ -1,25 +1,29 @@
 ﻿using System;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 
 namespace EmitLog;
 
 class EmitLog
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var factory = new ConnectionFactory() { HostName = "localhost" };
-        using (var connection = factory.CreateConnection())
-        using (var channel = connection.CreateModel())
+        await using (var connection = await factory.CreateConnectionAsync())
+        await using (var channel = await connection.CreateChannelAsync())
         {
-            channel.ExchangeDeclare(exchange: "logs", type: ExchangeType.Fanout);
+            await channel.ExchangeDeclareAsync(exchange: "logs", type: ExchangeType.Fanout);
 
             var message = GetMessage(args);
             var body = Encoding.UTF8.GetBytes(message);
-            channel.BasicPublish(
+            var properties = new BasicProperties();
+            await channel.BasicPublishAsync(
                 exchange: "logs",
                 routingKey: "",
-                basicProperties: null,
+                mandatory: true,
+                basicProperties: properties,
                 body: body
             );
             Console.WriteLine(" [x] Sent {0}", message);
