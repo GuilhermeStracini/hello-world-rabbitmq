@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RpcWorker.Domain;
@@ -16,14 +17,12 @@ class Program
     /// <summary>
     /// Defines the entry point of the application.
     /// </summary>
-    static void Main()
+    public static async Task Main(string[] args)
     {
-        var factory = new ConnectionFactory { HostName = "localhost" };
-
-        using var connection = factory.CreateConnection();
-        using var channel = connection.CreateModel();
-
-        Consumer(channel);
+        var factory = new ConnectionFactory() { HostName = "localhost" };
+        await using var connection = await factory.CreateConnectionAsync();
+        await using var channel = await connection.CreateChannelAsync();
+        await Consumer(channel);
 
         Console.ReadLine();
     }
@@ -32,11 +31,11 @@ class Program
     /// Consumers the specified channel.
     /// </summary>
     /// <param name="channel">The channel.</param>
-    private static void Consumer(IModel channel)
+    private static async Task Consumer(IChannel channel)
     {
-        var consumer = InitializerConsumer(channel, nameof(Order));
+        var consumer = await InitializerConsumer(channel, nameof(Order));
 
-        consumer.Received += (_, ea) =>
+        consumer.ReceivedAsync += async (_, ea) =>
         {
             try
             {
@@ -49,7 +48,7 @@ class Program
                 var replyMessage = JsonSerializer.Serialize(order);
                 Console.WriteLine($"{DateTime.Now:o} Reply => {replyMessage}");
 
-                SendReplyMessage(replyMessage, channel, ea);
+                await SendReplyMessage(replyMessage, channel, ea);
             }
             catch
             {
@@ -74,26 +73,26 @@ class Program
     /// <param name="replyMessage">The reply message.</param>
     /// <param name="channel">The channel.</param>
     /// <param name="ea">The <see cref="BasicDeliverEventArgs" /> instance containing the event data.</param>
-    private static void SendReplyMessage(
+    private static async Task SendReplyMessage(
         string replyMessage,
-        IModel channel,
+        IChannel channel,
         BasicDeliverEventArgs ea
     )
     {
         var props = ea.BasicProperties;
-        var replyProps = channel.CreateBasicProperties();
-        replyProps.CorrelationId = props.CorrelationId;
+        var replyProps = new BasicProperties { CorrelationId = props.CorrelationId };
 
         var responseBytes = Encoding.UTF8.GetBytes(replyMessage);
 
-        channel.BasicPublish(
+        await channel.BasicPublishAsync(
             exchange: "",
             routingKey: props.ReplyTo,
             basicProperties: replyProps,
+            mandatory: true,
             body: responseBytes
         );
 
-        channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+        await channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
     }
 
     /// <summary>
@@ -102,9 +101,12 @@ class Program
     /// <param name="channel">The channel.</param>
     /// <param name="queueName">Name of the queue.</param>
     /// <returns>EventingBasicConsumer.</returns>
-    private static EventingBasicConsumer InitializerConsumer(IModel channel, string queueName)
+    private static async Task<AsyncEventingBasicConsumer> InitializerConsumer(
+        IChannel channel,
+        string queueName
+    )
     {
-        channel.QueueDeclare(
+        await channel.QueueDeclareAsync(
             queue: queueName,
             durable: false,
             exclusive: false,
@@ -112,10 +114,10 @@ class Program
             arguments: null
         );
 
-        channel.BasicQos(0, 1, false);
+        await channel.BasicQosAsync(0, 1, false);
 
-        var consumer = new EventingBasicConsumer(channel);
-        channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
+        var consumer = new AsyncEventingBasicConsumer(channel);
+        await channel.BasicConsumeAsync(queue: queueName, autoAck: false, consumer: consumer);
 
         return consumer;
     }

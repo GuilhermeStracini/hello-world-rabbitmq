@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Text;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 
 namespace NewTaskAck;
 
 class NewTaskAck
 {
-    static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var factory = new ConnectionFactory() { HostName = "localhost" };
-        using (var connection = factory.CreateConnection())
-        using (var channel = connection.CreateModel())
+        await using (var connection = await factory.CreateConnectionAsync())
+        await using (var channel = await connection.CreateChannelAsync())
         {
-            channel.QueueDeclare(
+            await channel.QueueDeclareAsync(
                 queue: "task_queue_ack",
                 durable: true,
                 exclusive: false,
@@ -22,14 +23,13 @@ class NewTaskAck
 
             var message = GetMessage(args);
             var body = Encoding.UTF8.GetBytes(message);
+            var properties = new BasicProperties { Persistent = true };
 
-            var properties = channel.CreateBasicProperties();
-            properties.Persistent = true;
-
-            channel.BasicPublish(
+            await channel.BasicPublishAsync(
                 exchange: "",
                 routingKey: "task_queue_ack",
                 basicProperties: properties,
+                mandatory: true,
                 body: body
             );
         }

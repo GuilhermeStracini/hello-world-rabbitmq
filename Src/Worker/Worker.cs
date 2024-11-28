@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -8,36 +9,35 @@ namespace Worker;
 
 class Worker
 {
-    static void Main()
+    public static async Task Main(string[] args)
     {
         var factory = new ConnectionFactory() { HostName = "localhost" };
-        using (var connection = factory.CreateConnection())
-        using (var channel = connection.CreateModel())
+        await using var connection = await factory.CreateConnectionAsync();
+        await using var channel = await connection.CreateChannelAsync();
+        channel.QueueDeclareAsync(
+            queue: "task_queue",
+            durable: false,
+            exclusive: false,
+            autoDelete: false,
+            arguments: null
+        );
+
+        var consumer = new AsyncEventingBasicConsumer(channel);
+        consumer.ReceivedAsync += (_, ea) =>
         {
-            channel.QueueDeclare(
-                queue: "task_queue",
-                durable: false,
-                exclusive: false,
-                autoDelete: false,
-                arguments: null
-            );
+            var body = ea.Body;
+            var message = Encoding.UTF8.GetString(body.ToArray());
+            Console.WriteLine(" [x] Received {0}", message);
 
-            var consumer = new EventingBasicConsumer(channel);
-            consumer.Received += (_, ea) =>
-            {
-                var body = ea.Body;
-                var message = Encoding.UTF8.GetString(body.ToArray());
-                Console.WriteLine(" [x] Received {0}", message);
+            var dots = message.Split('.').Length - 1;
+            Thread.Sleep(dots * 1000);
 
-                int dots = message.Split('.').Length - 1;
-                Thread.Sleep(dots * 1000);
+            Console.WriteLine(" [x] Done");
+            return Task.CompletedTask;
+        };
+        await channel.BasicConsumeAsync(queue: "task_queue", autoAck: true, consumer: consumer);
 
-                Console.WriteLine(" [x] Done");
-            };
-            channel.BasicConsume(queue: "task_queue", autoAck: true, consumer: consumer);
-
-            Console.WriteLine(" Press [enter] to exit.");
-            Console.ReadLine();
-        }
+        Console.WriteLine(" Press [enter] to exit.");
+        Console.ReadLine();
     }
 }
