@@ -21,7 +21,7 @@ class Send
                 arguments: null
             );
 
-            string message = "Hello World!";
+            var message = "Hello World!";
             var body = Encoding.UTF8.GetBytes(message);
 
             await channel.BasicPublishAsync(
