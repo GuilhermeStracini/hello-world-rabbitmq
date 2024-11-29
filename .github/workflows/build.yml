@@ -28,7 +28,7 @@ jobs:
           dotnet-version: '9.0.x'
       
       - name: Build solution
-        run: dotnet build -c Release
+        run: dotnet build -c Debug
 
       - name: Run tests
-        run: dotnet test -c Release --no-build --no-restore
+        run: dotnet test -c Debug --no-build --no-restore
