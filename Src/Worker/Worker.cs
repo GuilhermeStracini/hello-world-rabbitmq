@@ -23,17 +23,16 @@ class Worker
         );
 
         var consumer = new AsyncEventingBasicConsumer(channel);
-        consumer.ReceivedAsync += (_, ea) =>
+        consumer.ReceivedAsync += async (_, ea) =>
         {
             var body = ea.Body;
             var message = Encoding.UTF8.GetString(body.ToArray());
             Console.WriteLine(" [x] Received {0}", message);
 
             var dots = message.Split('.').Length - 1;
-            Thread.Sleep(dots * 1000);
+            await Task.Delay(dots * 1000);
 
             Console.WriteLine(" [x] Done");
-            return Task.CompletedTask;
         };
         await channel.BasicConsumeAsync(queue: "task_queue", autoAck: true, consumer: consumer);
 
