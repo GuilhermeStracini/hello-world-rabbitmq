@@ -25,6 +25,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker", "Src\Worker\Worker
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkerAck", "Src\WorkerAck\WorkerAck.csproj", "{CBC5FD37-2E9A-4720-830F-95AE16A0EACD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmitLog.Tests", "Tests\EmitLog.Tests\EmitLog.Tests.csproj", "{9720CA0A-1A18-46A7-8C3D-88D9B92C2457}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +75,10 @@ Global
 		{CBC5FD37-2E9A-4720-830F-95AE16A0EACD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CBC5FD37-2E9A-4720-830F-95AE16A0EACD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CBC5FD37-2E9A-4720-830F-95AE16A0EACD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9720CA0A-1A18-46A7-8C3D-88D9B92C2457}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9720CA0A-1A18-46A7-8C3D-88D9B92C2457}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9720CA0A-1A18-46A7-8C3D-88D9B92C2457}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9720CA0A-1A18-46A7-8C3D-88D9B92C2457}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -86,6 +94,7 @@ Global
 		{30DE4BFE-D057-4EB9-B225-337B02969C11} = {E961E0F4-9F78-44C0-B141-994178170F58}
 		{F9EF05D1-F808-43BA-8EE3-965E7C356336} = {E961E0F4-9F78-44C0-B141-994178170F58}
 		{CBC5FD37-2E9A-4720-830F-95AE16A0EACD} = {E961E0F4-9F78-44C0-B141-994178170F58}
+		{9720CA0A-1A18-46A7-8C3D-88D9B92C2457} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D23A7951-8498-4403-8293-0828B60021C0}
