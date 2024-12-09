@@ -33,6 +33,7 @@ To follow along with this repository, you'll need:
 1. **RabbitMQ Server**: Download and install RabbitMQ from [here](https://www.rabbitmq.com/download.html). Ensure the server is running locally or accessible remotely.
 2. **.NET SDK**: Install the latest .NET SDK from [dotnet.microsoft.com](https://dotnet.microsoft.com/).
 3. **Docker (Optional)**: If you prefer, you can run RabbitMQ via Docker:
+
    ```bash
    docker run -d --hostname rabbitmq --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
    ```
@@ -42,12 +43,14 @@ To follow along with this repository, you'll need:
 ## Getting Started
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/GuilhermeStracini/hello-world-rabbitmq.git
    cd hello-world-rabbitmq
    ```
 
 2. Build and run the solution:
+
    ```bash
    dotnet build
    dotnet run
