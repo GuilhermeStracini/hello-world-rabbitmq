@@ -14,7 +14,7 @@ class Worker
         var factory = new ConnectionFactory() { HostName = "localhost" };
         await using var connection = await factory.CreateConnectionAsync();
         await using var channel = await connection.CreateChannelAsync();
-        channel.QueueDeclareAsync(
+        await channel.QueueDeclareAsync(
             queue: "task_queue",
             durable: false,
             exclusive: false,
